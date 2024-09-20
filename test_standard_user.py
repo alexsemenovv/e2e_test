@@ -53,3 +53,49 @@ def test_purchase_backpack(driver):
     button.click()
 
     assert "Thank you for your order!" in driver.page_source
+
+
+def test_view_products(driver):
+    """ Тест на просмотр каталога товаров """
+
+    # Поверка загрузки главной страницы
+    driver.get(URI)
+    assert "Swag Labs" in driver.title
+
+    # Проверка авторизации
+    login = driver.find_element(By.ID, "user-name")
+    login.send_keys(user_name)
+    password = driver.find_element(By.ID, "password")
+    password.send_keys(user_password)
+    button = driver.find_element(By.ID, "login-button")
+    button.click()
+    assert "error-message-container error" not in driver.page_source
+
+    # Проверка на кликабельность изображений и ссылок на товары
+    for i_item in range(6):
+        # Проверяем доступен ли каталог продуктов
+        assert 'Products' in driver.page_source
+
+        # Находим товар и кликаем по его ИЗОБРАЖЕНИЮ
+        driver.find_element(By.ID, f"item_{i_item}_img_link").click()
+
+        # Проверяем загрузится ли страница с товаром
+        inventory_details_container = driver.find_element(By.CLASS_NAME, "inventory_details_container")
+        assert inventory_details_container is not None
+
+        # Возвращаемся на страницу с товарами
+        driver.find_element(By.ID, "back-to-products").click()
+
+        # Находим товар и кликаем по его ИМЕНИ
+        driver.find_element(By.ID, f"item_{i_item}_title_link").click()
+
+        # Проверяем загрузится ли страница с товаром
+        inventory_details_container = driver.find_element(By.CLASS_NAME, "inventory_details_container")
+        assert inventory_details_container is not None
+
+        # Возвращаемся на страницу с товарами
+        driver.find_element(By.ID, "back-to-products").click()
+
+
+
+
