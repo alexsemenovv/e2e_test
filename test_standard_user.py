@@ -1,13 +1,13 @@
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
 URI = "http://www.saucedemo.com"
 user_name = 'standard_user'
 user_password = 'secret_sauce'
 
 
-def test_purchase_backpack(driver):
-    """ Тест на успешную покупку """
-
+def authorization(driver):
     # Поверка загрузки главной страницы
     driver.get(URI)
     assert "Swag Labs" in driver.title
@@ -17,24 +17,38 @@ def test_purchase_backpack(driver):
     login.send_keys(user_name)
     password = driver.find_element(By.ID, "password")
     password.send_keys(user_password)
-    button = driver.find_element(By.ID, "login-button")
-    button.click()
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "login-button"))
+    ).click()
     assert "error-message-container error" not in driver.page_source
 
+
+def test_purchase_backpack(driver):
+    """ Тест на успешную покупку """
+
+    # Авторизация
+    authorization(driver)
+
     # Добавляем рюкзак в корзину
-    driver.find_element(By.ID, 'add-to-cart-sauce-labs-backpack').click()
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, 'add-to-cart-sauce-labs-backpack'))
+    ).click()
 
     # Проверяем что кнопка добавления изменилась на "remove"
     assert "remove-sauce-labs-backpack" in driver.page_source
 
     # Переходим в корзину
-    driver.find_element(By.ID, 'shopping_cart_container').click()
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, 'shopping_cart_container'))
+    ).click()
 
     # Проверяем есть ли рюкзак в корзине
     assert "Sauce Labs Backpack" in driver.page_source
 
     # Нажимаем на кнопку "checkout" и переходим на страницу оформления покупки
-    driver.find_element(By.ID, "checkout").click()
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "checkout"))
+    ).click()
 
     # Заполняем поля
     first_name = driver.find_element(By.ID, "first-name")
@@ -44,13 +58,15 @@ def test_purchase_backpack(driver):
     postal_code = driver.find_element(By.ID, "postal-code")
     postal_code.send_keys('123456')
     # Нажимаем продолжить
-    button = driver.find_element(By.ID, "continue")
-    button.click()
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "continue"))
+    ).click()
     assert "error-message-container error" not in driver.page_source
 
     # Переходим на завершающую страницу заказа и нажимаем "finish"
-    button = driver.find_element(By.ID, "finish")
-    button.click()
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "finish"))
+    ).click()
 
     assert "Thank you for your order!" in driver.page_source
 
@@ -58,18 +74,8 @@ def test_purchase_backpack(driver):
 def test_view_products(driver):
     """ Тест на просмотр каталога товаров """
 
-    # Поверка загрузки главной страницы
-    driver.get(URI)
-    assert "Swag Labs" in driver.title
-
-    # Проверка авторизации
-    login = driver.find_element(By.ID, "user-name")
-    login.send_keys(user_name)
-    password = driver.find_element(By.ID, "password")
-    password.send_keys(user_password)
-    button = driver.find_element(By.ID, "login-button")
-    button.click()
-    assert "error-message-container error" not in driver.page_source
+    # Авторизация
+    authorization(driver)
 
     # Проверка на кликабельность изображений и ссылок на товары
     for i_item in range(6):
@@ -77,25 +83,56 @@ def test_view_products(driver):
         assert 'Products' in driver.page_source
 
         # Находим товар и кликаем по его ИЗОБРАЖЕНИЮ
-        driver.find_element(By.ID, f"item_{i_item}_img_link").click()
+        WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, f"item_{i_item}_img_link"))
+        ).click()
 
         # Проверяем загрузится ли страница с товаром
         inventory_details_container = driver.find_element(By.CLASS_NAME, "inventory_details_container")
         assert inventory_details_container is not None
 
         # Возвращаемся на страницу с товарами
-        driver.find_element(By.ID, "back-to-products").click()
+        WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "back-to-products"))
+        ).click()
 
         # Находим товар и кликаем по его ИМЕНИ
-        driver.find_element(By.ID, f"item_{i_item}_title_link").click()
+        WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, f"item_{i_item}_title_link"))
+        ).click()
 
         # Проверяем загрузится ли страница с товаром
         inventory_details_container = driver.find_element(By.CLASS_NAME, "inventory_details_container")
         assert inventory_details_container is not None
 
         # Возвращаемся на страницу с товарами
-        driver.find_element(By.ID, "back-to-products").click()
+        WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, "back-to-products"))
+        ).click()
 
 
+def test_add_many_products_in_basket(driver):
+    """ Тест на добавление нескольких товаров в корзину """
+
+    # Авторизация
+    authorization(driver)
+
+    # Добавляем товары в корзину
+    products = ["add-to-cart-sauce-labs-bike-light", "add-to-cart-sauce-labs-bolt-t-shirt",
+                "add-to-cart-test.allthethings()-t-shirt-(red)"]
+    for p in products:
+        WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.ID, p))
+        ).click()
+
+    # Переходим в корзину
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.CLASS_NAME, "shopping_cart_link"))
+    ).click()
+    # Находим все элементы товаров в корзине
+    cart_items = driver.find_elements(By.CLASS_NAME, "cart_item")
+
+    # Проверяем что в корзине 3 товара
+    assert len(cart_items) == 3
 
 
