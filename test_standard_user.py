@@ -136,3 +136,26 @@ def test_add_many_products_in_basket(driver):
     assert len(cart_items) == 3
 
 
+def test_delete_product_before_purchase_from_basket(driver):
+    authorization(driver)
+
+    # Добавляем товар в корзину
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "add-to-cart-sauce-labs-bike-light"))
+    ).click()
+
+    # Ожидаем обновления элемента с количеством товаров в корзине
+    cart_count = WebDriverWait(driver, 10).until(
+        EC.presence_of_element_located((By.CLASS_NAME, "shopping_cart_badge"))
+    )
+
+    # Проверяем, что количество товаров в корзине равно 1
+    assert cart_count.text == "1"
+
+    # Удаляем товар из корзины
+    WebDriverWait(driver, 10).until(
+        EC.element_to_be_clickable((By.ID, "remove-sauce-labs-bike-light"))
+    ).click()
+
+    # Ожидаем что в корзине не осталось товаров
+    assert "shopping_cart_badge" not in driver.page_source
